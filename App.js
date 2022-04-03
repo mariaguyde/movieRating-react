@@ -1,14 +1,26 @@
-import {Button, View, Text, TextInput, StatusBar} from "react-native";
+import {Button, View, Text, TextInput, StatusBar, Image} from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {NavigationContainer, useFocusEffect, useNavigation, useRoute} from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {ScrollView} from 'react-native';
-
+import { Rating, AirbnbRating } from 'react-native-ratings';
+import {ScrollView, SafeAreaView, StyleSheet} from 'react-native';
+import Popup from 'reactjs-popup';
+import 'reactjs-popup/dist/index.css';
 
 // CSS
 const formPage = {
-    margin : "20px"
+    margin : "auto",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    //background: "#0853a2",
+    color: "black",
+    fontWeight: "bold",
+    padding: "20px 30px",
+    borderRadius: "20px",
+    width: "300px",
 }
 
 const label = {
@@ -19,93 +31,114 @@ const label = {
 const inputs = {
     marginTop: "20px",
     display : "flex",
-    flexDirection : "column"
+    flexDirection : "column",
 }
 
 const input = {
     marginTop : "10px",
-    marginBottom : "15px"
+    marginBottom : "15px",
+    backgroundColor: "white",
 }
-
-const buttonsArea = {
-    display: "flex",
-    flexDirection: "row",
-}
-
-const buttons = {
-    width : "fit-content",
-    marginRight:  "10px"
-}
-
-const listFilmAjoutes = {
-    marginTop: "20px"
-}
-
-const listView = {
-    margin : "20px"
-}
-
 const NameFilm = {
     fontSize: "30px",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    marginBottom: "20px"
 }
+
+const popup = {
+    padding : "15px"
+}
+
+const NameFilmPopUp = {
+    fontSize: "30px",
+    fontWeight: "bold",
+    margin: "20px 0"
+}
+
+const movie = {
+    backgroundColor: "white",
+    display: "flex",
+    padding : "20px",
+    marginBottom: "40px",
+    borderRadius: "20px",
+}
+
+const movie_infos = {
+    display:"flex",
+    flexDirection: "column",
+    marginLeft: "30px",
+}
+
+const btn = {
+    border : "none",
+    backgroundColor: "#0853a2",
+    borderRadius: "10px",
+    color : "white",
+    padding : "10px"
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingTop: StatusBar.currentHeight,
+    },
+    scrollView: {
+        marginHorizontal: 20,
+        marginTop: "30px"
+    },
+});
+
 
 let listTasks = [];
 let task = {};
 
-const Todo = ({ text, doneCallback, note, resume }) => {
-  return (
-      <View style={{ flexDirection: "column" }}>
-          <Text style={{ fontSize: 30 }}>{text}</Text>
-          <Text  style={{ fontSize: 20 }}>{note}</Text>
-          <Text  style={{ fontSize: 20 }}>{resume}</Text>
-          <Button style ={{width: "fit-content"}} title="done" onPress={doneCallback}></Button>
-      </View>
-  );
-};
-
 const Tabs = createBottomTabNavigator();
 
+// TAB LISTE DES FILMS NOTÉS
 const SettingsScreen = ({ route, navigation }) => {
-    console.log(listTasks);
-
     const [list, setList] = useState([{ id: 0, text: "coucou", note : 6, resume : "Un bon film" }]);
-
     const addElement = (txt) => {
         setList((current) => [...current, { id: current.length, text: txt }]);
     };
 
-
     return (
-        <View>
-            <div style={listView}>
-                <div>
-                    <Button style = {buttons}
-                            title="Ajouter un film à la liste"
-                            onPress={() => {
-                                navigation.navigate("Ajouter un film à la liste");
-                            }}
-                    />
-                </div>
-
-                <div style={listFilmAjoutes}>
-                    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                        {listTasks.map((elm) => (
-                            <Text key={elm.id}>
+        <View style={styles.container}>
+            <SafeAreaView style={styles.container}>
+                <ScrollView style={styles.scrollView}>
+                    <div class={"movies"}>
+                    {listTasks.map((elm) => (
+                        <Text style={movie}  key={elm.id}>
+                            <Image style={{ width: 267, height: 400}} source={{uri: elm.image,}}/>
+                            <div className={"movie_unit"} style={movie_infos}>
                                 <span style={NameFilm}>{elm.text} </span>
-                                <span> Note: {elm.note} </span>
-                                <span> Resume : {elm.resume} </span>
-                            </Text>
-                        ))}
-                    </ScrollView>
-                </div>
-            </div>
+                                <span>
+                                      <Popup trigger={<button style = {btn} className="button"> Voir les détails de ce film </button>} modal nested>
+                                        {close => (
+                                            <div style={popup} className="modal">
+                                                <button  style = {btn} className="close" onClick={close}>
+                                                    &times;
+                                                </button>
+                                                <div style={NameFilmPopUp} className="header"> {elm.text} </div>
+                                                <div className="content">
+                                                    <span> Note: {elm.note} </span>
+                                                    <span> Resume : {elm.resume} </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                      </Popup>
+                                </span>
+                            </div>
+                        </Text>
+                    ))}
+                    </div>
+                </ScrollView>
+            </SafeAreaView>
         </View>
     );
 };
 
 
-
+// TAB AJOUTER UN FILM  LA LISTE
 const FormScreen = (navigation) => {
     const [value, setValue] = useState("");
     const [textValue, setTextValue] = useState("");
@@ -115,65 +148,45 @@ const FormScreen = (navigation) => {
     const navigation2 = useNavigation();
 
 
-    const addTodo = () => {
-    let id = todoList.length;
-    setTodoList([...todoList, { id: id, text: textValue, note :gradeValue, resume :resumeValue }]);
-    task = {id: id, text: textValue, note :gradeValue, resume :resumeValue};
-    console.log(task);
-    listTasks.push(task);
-    console.log(listTasks);
-  };
+    const addTodo = async () => {
 
-  const removeTodo = (id) => {
-    setTodoList(todoList.filter((elm) => elm.id != id));
-  };
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+        const request = "https://imdb-api.com/en/API/SearchMovie/k_dend212b/" + textValue;
+        //console.log(request);
+        const response = await fetch(request, requestOptions);
+        const result = await response.json();
+        let image = result.results[0]['image'];
+        //console.log(result);
+        let id = todoList.length;
+        setTodoList([...todoList, { id: id, text: textValue, note :gradeValue, resume :resumeValue, image:image }]);
+        task = {id: id, text: textValue, note :gradeValue, resume :resumeValue, image: image};
+        listTasks.push(task);
+    };
 
-  return (
+    const removeTodo = (id) => {
+        setTodoList(todoList.filter((elm) => elm.id != id));
+    };
+
+    return (
       <View>
           <div style={formPage}>
-
               <div style={inputs}>
                   <label style={label}>Nom du film</label>
                   <TextInput style={input} value={textValue} onChangeText={setTextValue}/>
                   <label style={label}>Note du film</label>
-                  <TextInput style={input} keyboardType="numeric" value={gradeValue} onChangeText={setGradeValue}/>
+                  <TextInput style={input} keyboardType={"numeric"} value={gradeValue} onChangeText={setGradeValue}/>
                   <label style={label}>Résumé personnel</label>
                   <TextInput style={input} value={resumeValue} onChangeText={setResumeValue}/>
-              </div>
-
-              <div style={buttonsArea}>
-                  <div style={buttons}>
-                      <Button  title="Ajouter le film à ma liste" onPress={addTodo}></Button>
-                  </div>
-                  <div style={buttons}>
-                      <Button
-                              title="Retourner à la liste des films"
-                              onPress={() => navigation2.navigate("Liste des films notés", { addElement: value })}
-                      />
-                  </div>
-              </div>
-
-              <div style={listFilmAjoutes}>
-                  <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                      {todoList.map((todo) => (
-                          <Todo
-                              text={todo.text}
-                              note = {todo.note}
-                              resume = {todo.resume}
-                              key={todo.id}
-                              doneCallback={() => removeTodo(todo.id)}
-                          >
-                          </Todo>
-                      ))}
-                  </ScrollView>
+                  <Button title="Ajouter le film à ma liste" onPress={addTodo}></Button>
               </div>
               <StatusBar style="auto"></StatusBar>
           </div>
       </View>
   );
 };
-
-// const Stack = createNativeStackNavigator();
 
 const App = () => {
     return (
@@ -192,16 +205,29 @@ const App = () => {
                     },
                     tabBarActiveTintColor: "#49e",
                     tabBarInactiveTintColor: "grey",
-                })}
-            >
+                })}>
+
                 <Tabs.Screen
-                    name="Liste des films notés"
+                    name="Liste de vos films préférés"
+                    initialParams={{ addElement: null }}
                     component={SettingsScreen}
+                    options={{
+                        tabBarLabel: "Liste de vos films préférés",
+                        tabBarIcon: ({ color }) => (
+                            <Ionicons name="albums" size={25} color={color} />
+                        ),
+                    }}
                 />
                 <Tabs.Screen
                     name="Ajouter un film à la liste"
                     initialParams={{ addElement: null }}
-                    component={FormScreen}/>
+                    component={FormScreen}
+                    options={{
+                        tabBarLabel: "Ajouter",
+                        tabBarIcon: ({ color }) => (
+                            <Ionicons name="add-circle-outline" size={25} color={color} />
+                        ),
+                    }}/>
             </Tabs.Navigator>
         </NavigationContainer>
     );
